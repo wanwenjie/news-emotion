@@ -4,21 +4,24 @@ from pdfminer.layout import LAParams, LTTextBoxHorizontal
 from pdfminer.pdfinterp import PDFTextExtractionNotAllowed, PDFResourceManager, PDFPageInterpreter
 from pdfminer.pdfparser import PDFDocument, PDFParser
 import os
+from DAF import DFAFilter
 
-TRADE_SET = set([u"贸易", u"出口", u"关税协定/关贸总协定",
-                 u"贸易壁垒", u"自由贸易协定/FTA", u"投资协定",
-                 u"世界贸易组织/WTO", u"关税", u"经常账户", u"贸易顺差/贸易盈余/贸易赤字",
-                 u"中国制造", u"出口/进口许可"])
+TRADE_LIST = [u"贸易", u"出口", u"关税协定/关贸总协定",
+              u"贸易壁垒", u"自由贸易协定/FTA", u"投资协定",
+              u"世界贸易组织/WTO", u"关税", u"经常账户", u"贸易顺差/贸易盈余/贸易赤字",
+              u"中国制造", u"出口/进口许可"]
 
 
-PDF_PATH = "./pdf/"
+PDF_PATH = "/Users/wanwenjie/projects/news-emotion/reports/"
 
 
 def filter_text(content):
     """
     过滤文本，只返回包含贸易词汇
     """
-    return True
+    daf = DFAFilter()
+    daf.parse_list(TRADE_LIST)
+    return daf.is_contain(content)
 
 
 def format_text(content):
@@ -75,7 +78,8 @@ def parse(path):
                         try:
                             f.write(results.replace('•', '.') + '\n')
                         except BaseException as e:
-                             print(e)
+                            print("write error")
+                            print(e)
     fp.close()
     f.close()
     return four
@@ -84,26 +88,28 @@ def parse(path):
 def dir(path):
     for folderName, subfolders, filenames in os.walk(path):
         print('The current folder is ' + folderName)
-
         for subfolder in subfolders:
             print('SUBFOLDER OF ' + folderName + ': ' + subfolder)
         for filename in filenames:
             print('FILE INSIDE ' + folderName + ': ' + filename)
 
 
-if __name__ == '__main__':
-    path = PDF_PATH
+def run(path):
     file_names = os.listdir(path)
     for file in file_names:
         if file.lower().count('.pdf') == 1:
             try:
                 fullfname = path + file
-                four = parse(fullfname)
-                print(four)
-                if len(four) > 0:
-                  outputtxt = path + "four-" + file.lower().replace("pdf","txt")
-                  with open(outputtxt, 'a') as f:
-                    f.writelines(four)
+                outputtxt = path + "Extract-" + file.lower().replace("pdf", "txt")
+                if not os.path.exists(outputtxt):
+                    four = parse(fullfname)
+                    if len(four) > 0 and filter_text("".join(four)):
+                        with open(outputtxt, 'a') as f:
+                            f.writelines(four)
                 f.close()
             except BaseException as e:
-                    print(e)
+                print(e)
+
+
+if __name__ == '__main__':
+    run(PDF_PATH)

@@ -6,7 +6,8 @@ import ml_model as ml
 
 VECTOR_MODE = {'onehot': 0, 'wordfreq': 1, 'twovec': 2, 'tfidf': 3, 'outofdict': 4}
 
-def save_model(best_vector,best_model):
+
+def save_model(best_vector, best_model):
     """
     存储效果最好的模型
     需要手动指明参数名字
@@ -24,10 +25,11 @@ def save_model(best_vector,best_model):
     resultY = np.load(ypath)
     new_x, new_y = od.twoTag(resultX[best_vector], resultY[best_vector])
     model_saved = ml.linearLogistic(new_x, new_y)
-    path = os.path.join('model','wordfreq_logistic.ml')
-    with open(path,'wb') as f:
-        pickle.dump(model_saved,f)
+    path = os.path.join('model', 'wordfreq_logistic.ml')
+    with open(path, 'wb') as f:
+        pickle.dump(model_saved, f)
     print("Save over")
+
 
 class Predictor(object):
     """
@@ -40,30 +42,30 @@ class Predictor(object):
         self._vec = None
         self.mode = None
 
-    def load_model(self,path=None):
+    def load_model(self, path=None):
         if not path:
             path = os.path.join('model','wordfreq_logistic.ml')
 
-        with open(path,'rb') as f:
+        with open(path, 'rb') as f:
             self._model = pickle.load(f)
 
-    def set_mode(self,mode):
-        if isinstance(mode,int):
+    def set_mode(self, mode):
+        if isinstance(mode, int):
             assert mode in VECTOR_MODE.values(), "没有这种vector方式"
-        if isinstance(mode,str):
+        if isinstance(mode, str):
             assert mode in VECTOR_MODE.keys(), "没有这种vector方式"
             mode = VECTOR_MODE[mode]
         self.mode = mode
 
-    def set_news(self,news):
+    def set_news(self, news):
         if not len(news):
             print("请输入有效的新闻文本,谢谢")
             return
         self.news = news
 
     def trans_vec(self):
-        vec_list = od.words2Vec(self.news,od.emotionList,od.stopList,od.posList,od.negList,mode=self.mode)
-        self._vec = np.array(vec_list).reshape(1,-1)
+        vec_list = od.words2Vec(self.news, od.emotionList, od.stopList, od.posList, od.negList, mode=self.mode)
+        self._vec = np.array(vec_list).reshape(1, -1)
 
     # 调用的时候计算函数
     def __call__(self, *args, **kwargs):
@@ -99,7 +101,10 @@ def test(reload=False):
     print("算出来的和是",sum(predictor._vec[0]))
     print("打标的结果是：",tag)
 
-if __name__=='__main__':
+
+def test_extract_txt():
     pass
 
 
+if __name__ == '__main__':
+    test_extract_txt
