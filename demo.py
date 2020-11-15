@@ -4,6 +4,8 @@ import numpy as np
 import operate_data as od
 import ml_model as ml
 
+from pdf_extract import cal_neg_ratio, format_text
+
 VECTOR_MODE = {'onehot': 0, 'wordfreq': 1, 'twovec': 2, 'tfidf': 3, 'outofdict': 4}
 
 
@@ -102,9 +104,40 @@ def test(reload=False):
     print("打标的结果是：",tag)
 
 
-def test_extract_txt():
-    pass
+def test_extract_txt(reload=False):
+    if reload:
+        best_vector = "wordfreq"
+        best_model = 1  # linearLogistic
+        save_model(best_vector, best_model)
+    else:
+        od.loadStopwords()
+        od.loadEmotionwords()
+        od.loadWords(od.stopList)
+        od.loadDocument(od.stopList)
+
+    predictor = Predictor()
+    predictor.load_model()
+    predictor.set_mode(mode="wordfreq")
+    # 读取txt文件
+    path = os.path.join("reports")
+    file_names = os.listdir(path)
+    for file in file_names:
+        if file.lower().count('.txt') == 1:
+            result = []
+            with open(os.path.join(path, file), 'r') as f:
+                contents = f.read()
+                news_list = format_text(contents)
+                for new in news_list:
+                    predictor.set_news(news=new)
+                    predictor.trans_vec()
+                    tag = predictor()
+                    result.append((new, tag))
+                # 计算贸易摩擦指数
+                print(file)
+                percent = cal_neg_ratio(result)
+                print("贸易摩擦指数：")
+                print(percent)
 
 
 if __name__ == '__main__':
-    test_extract_txt
+    test_extract_txt()

@@ -111,5 +111,19 @@ def run(path):
                 print(e)
 
 
+def cal_neg_ratio(_list):
+    """
+    计算贸易摩擦
+    """
+    total = len(_list)
+    neg_nums = 0
+    for t in _list:
+        if t[1][0] == -1:
+            neg_nums += 1
+    print("total:", total)
+    print("neg_nums:", neg_nums)
+    return '{:.2%}'.format(neg_nums/total)
+
+
 if __name__ == '__main__':
     run(PDF_PATH)
