@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from multiprocessing import Pool
 from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams, LTTextBoxHorizontal
 from pdfminer.pdfinterp import PDFTextExtractionNotAllowed, PDFResourceManager, PDFPageInterpreter
@@ -70,7 +71,7 @@ def parse(path):
                         results = x.get_text()
                         if layout.pageid != 3 and results.count("第四节 经营情况讨论与分析") == 1:
                             flg = True
-                            print(results + '\n')
+                            # print(results + '\n')
                         if layout.pageid != 3 and results.count("第五节") == 1:
                             flg = False
                         if flg:
@@ -79,7 +80,6 @@ def parse(path):
                             f.write(results.replace('•', '.') + '\n')
                         except BaseException as e:
                             print("write error")
-                            print(e)
     fp.close()
     f.close()
     return four
@@ -96,19 +96,42 @@ def dir(path):
 
 def run(path):
     file_names = os.listdir(path)
+    file_list = []
+    total = 0
+    pdf_count = 0
+    txt_count = 0
     for file in file_names:
+        total += 1
         if file.lower().count('.pdf') == 1:
-            try:
-                fullfname = path + file
-                outputtxt = path + "Extract-" + file.lower().replace("pdf", "txt")
-                if not os.path.exists(outputtxt):
-                    four = parse(fullfname)
-                    if len(four) > 0 and filter_text("".join(four)):
-                        with open(outputtxt, 'a') as f:
-                            f.writelines(four)
-                f.close()
-            except BaseException as e:
-                print(e)
+            pdf_count += 1
+        elif file.lower().count('.txt') == 1:
+            txt_count += 1
+        outputtxt = path + "Extract-" + file.lower().replace("pdf", "txt")
+        if not os.path.exists(outputtxt) and file.lower().count('.pdf') == 1:
+            file_list.append([path, file])
+    print('total:', total)
+    print('pdf_count:', pdf_count)
+    print('txt_count:', txt_count)
+    return file_list
+
+
+def deal_process(args):
+    """
+    处理进程
+    """
+    path = args[0]
+    file = args[1]
+    if file.lower().count('.pdf') == 1:
+        try:
+            fullfname = path + file
+            outputtxt = path + "Extract-" + file.lower().replace("pdf", "txt")
+            if not os.path.exists(outputtxt):
+                four = parse(fullfname)
+                if len(four) > 0 and filter_text("".join(four)):
+                    with open(outputtxt, 'a') as f:
+                        f.writelines(four)
+        except BaseException as e:
+            print(e)
 
 
 def cal_neg_ratio(_list):
@@ -122,8 +145,14 @@ def cal_neg_ratio(_list):
             neg_nums += 1
     print("total:", total)
     print("neg_nums:", neg_nums)
-    return '{:.2%}'.format(neg_nums/total)
+    return total, neg_nums, '{:.2%}'.format(neg_nums/total)
 
 
 if __name__ == '__main__':
+    file_list = run(PDF_PATH)
+    r_pool = Pool(4)
+    r_pool.map(deal_process, file_list)
+    r_pool.close()
+    r_pool.join()
+    print("处理完成")
     run(PDF_PATH)

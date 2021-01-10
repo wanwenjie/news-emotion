@@ -124,7 +124,7 @@ def test_extract_txt(reload=False):
     for file in file_names:
         if file.lower().count('.txt') == 1:
             result = []
-            with open(os.path.join(path, file), 'r') as f:
+            with open(os.path.join(path, file), 'r', encoding="utf-8") as f:
                 contents = f.read()
                 news_list = format_text(contents)
                 for new in news_list:
@@ -134,9 +134,16 @@ def test_extract_txt(reload=False):
                     result.append((new, tag))
                 # 计算贸易摩擦指数
                 print(file)
-                percent = cal_neg_ratio(result)
+                total, neg_nums, percent = cal_neg_ratio(result)
                 print("贸易摩擦指数：")
                 print(percent)
+                write_result(file, total, neg_nums, percent)
+
+
+def write_result(filename, total, neg_nums, percent):
+    with open("result.csv", "a+") as f:
+        lines = ",".join([filename, str(total), str(neg_nums), str(percent)]) + "\r\n"
+        f.write(lines)
 
 
 if __name__ == '__main__':

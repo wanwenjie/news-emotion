@@ -2,7 +2,7 @@
 # @Author: wanwenjie
 # @Date:   2020-11-08 21:19:25
 # @Last Modified by:   wanwenjie
-# @Last Modified time: 2020-11-09 13:01:44
+# @Last Modified time: 2021-01-09 21:06:55
 # -*- coding:utf-8 -*-
 
 import time
@@ -43,7 +43,6 @@ class DFAFilter(object):
         with open(path, encoding='utf-8') as f:
             for keyword in f:
                 self.add(str(keyword).strip())
-        print(self.keyword_chains)
 
     def parse_list(self, _list):
         for keyword in _list:
@@ -88,7 +87,6 @@ class DFAFilter(object):
                 if char in level:
                     step_ins += 1
                     if self.delimit not in level[char]:
-                        print(char)
                         level = level[char]
                     else:
                         start += step_ins - 1
